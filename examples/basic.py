@@ -1,7 +1,4 @@
-"""Basic example demonstrating Blueberry serialization with pydantic models.
-
-Matches the Rust `examples/basic.rs` golden test vectors.
-"""
+"""Basic example demonstrating Blueberry serialization with pydantic models."""
 
 from typing import Annotated
 
