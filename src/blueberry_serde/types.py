@@ -12,6 +12,7 @@ else:
     UnionType = None
 
 from pydantic import BaseModel
+from pydantic.fields import FieldInfo
 
 
 def is_list_type(annotation: Any) -> bool:
@@ -67,6 +68,27 @@ UInt64 = WireType("<Q", 8)
 Int64 = WireType("<q", 8)
 Float32 = WireType("<f", 4)
 Float64 = WireType("<d", 8)
+
+
+class OptionalOrdinal:
+    """Marker for ordinal-based optional fields.
+
+    Annotate fields with ``Annotated[int | None, UInt8, OptionalOrdinal(3)]``
+    to indicate the field is present only when ``payload_field_count >= ordinal``.
+    The ordinal should equal ``non_optional_field_count + 1`` for the first
+    optional field, incrementing by one for each subsequent version.
+    """
+
+    def __init__(self, ordinal: int):
+        self.ordinal = ordinal
+
+
+def get_optional_ordinal(field_info: FieldInfo) -> int | None:
+    """Extract OptionalOrdinal from pydantic field metadata, if present."""
+    for m in field_info.metadata:
+        if isinstance(m, OptionalOrdinal):
+            return m.ordinal
+    return None
 
 
 def get_wire_type(annotation: Any) -> WireType | None:

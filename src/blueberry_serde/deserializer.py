@@ -10,6 +10,7 @@ from pydantic.fields import FieldInfo
 
 from blueberry_serde.types import (
     WireType,
+    get_optional_ordinal,
     get_wire_type,
     is_list_type,
     is_pydantic_model,
@@ -40,12 +41,16 @@ class Deserializer:
         self.in_seq_data = False
         self.message_byte_len: int | None = None
         self.message_start = 0
+        self.payload_field_count: int | None = None
 
     @classmethod
     def with_message_context(cls, data: bytes | bytearray, body_start: int, message_byte_len: int) -> Deserializer:
         d = cls(data, body_start)
         d.message_byte_len = message_byte_len
         return d
+
+    def set_payload_field_count(self, count: int) -> None:
+        self.payload_field_count = count
 
 
     def _read_padding(self, size: int) -> None:
@@ -158,6 +163,14 @@ class Deserializer:
     def deserialize_model(self, model_type: Type[T]) -> T:
         kwargs: dict[str, Any] = {}
         for field_name, field_info in model_type.model_fields.items():
+            ordinal = get_optional_ordinal(field_info)
+            if ordinal is not None:
+                if self.payload_field_count is not None and ordinal > self.payload_field_count:
+                    kwargs[field_name] = None
+                    continue
+                if self.payload_field_count is None and self.pos >= len(self.data):
+                    kwargs[field_name] = None
+                    continue
             annotation = _effective_annotation(field_info)
             kwargs[field_name] = self._deserialize_field(annotation)
         self._skip_to_message_end()

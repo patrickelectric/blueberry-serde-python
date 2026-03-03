@@ -10,6 +10,7 @@ from pydantic.fields import FieldInfo
 
 from blueberry_serde.types import (
     WireType,
+    get_optional_ordinal,
     get_wire_type,
     is_list_type,
     is_pydantic_model,
@@ -178,8 +179,11 @@ class Serializer:
 
     def serialize_model(self, model: BaseModel) -> None:
         for field_name, field_info in type(model).model_fields.items():
-            self.field_count += 1
             value = getattr(model, field_name)
+            ordinal = get_optional_ordinal(field_info)
+            if ordinal is not None and value is None:
+                continue
+            self.field_count += 1
             annotation = _effective_annotation(field_info)
             self._serialize_field(value, annotation)
 

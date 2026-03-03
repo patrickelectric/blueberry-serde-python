@@ -62,7 +62,10 @@ def deserialize_message(data: bytes | bytearray, model_type: Type[T]) -> tuple[M
         raise ValueError("Invalid message header")
     message_byte_len = header.length * 4
 
+    payload_field_count = header.max_ordinal - (HEADER_FIELD_COUNT - 1)
+
     de = Deserializer.with_message_context(data, HEADER_SIZE, message_byte_len)
+    de.set_payload_field_count(payload_field_count)
     model = de.deserialize_model(model_type)
     return header, model
 

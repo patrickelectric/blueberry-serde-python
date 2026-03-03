@@ -18,6 +18,7 @@ from blueberry_serde.constants import (
     HEADER_FIELD_COUNT,
     BLUEBERRY_PORT,
 )
+from blueberry_serde.types import OptionalOrdinal
 
 __all__ = [
     "serialize",
@@ -35,4 +36,5 @@ __all__ = [
     "HEADER_SIZE",
     "HEADER_FIELD_COUNT",
     "BLUEBERRY_PORT",
+    "OptionalOrdinal",
 ]
